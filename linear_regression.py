@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 a = pd.read_csv("forestfires.csv")
 
@@ -9,9 +10,12 @@ del a['month']
 del a['day']
 
 Y = a['area']
+Y = Y + 1
+Y = np.log(Y)
+
+print(Y)
+
 del a['area']
-
-
 
 # Multiple linear regression
 b_0 = np.ones((517, 1))
@@ -24,6 +28,7 @@ X_t_X_i = np.linalg.inv(X_t_X)
 B = np.matmul(X_t_X_i, X_t_Y)
 
 # Ridge Regression
+
 
 
 class Regression:
