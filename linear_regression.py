@@ -69,6 +69,63 @@ class Linear_Regression:
 
         return(weights)
 
+    def Y_hat(self):
+        """
+        This function calculates Y_hat
+        :return: Y_hat prediciton
+        """
+        weights = self.cal_weights()
+        Y_hat = np.matmul(self.X, weights)
+        return (Y_hat)
+
+    def SSE(self):
+        """
+        This function calculates the residual sum of squares
+        :return: Residual sum of squares
+        """
+        Y_hat = self.Y_hat()
+        Y_i_Y =  self.Y - Y_hat
+        Y_i_Y_t = Y_i_Y.transpose()
+        SSE = np.matmul(Y_i_Y_t, Y_i_Y)
+
+        return(SSE)
+
+    def TSS(self):
+        """
+        This calculates and returns the total sum of squares
+        :return: The total sum of squares
+        """
+        Y_mean = self.Y.mean()
+        Y_i_Y = self.Y - Y_mean
+        Y_i_Y_t = Y_i_Y.transpose()
+
+        TSS = np.matmul(Y_i_Y_t, Y_i_Y)
+
+        return(TSS)
+
+    def R_squared(self):
+        """
+        Caluculate the R_squared vavlue (1-SSE/TSS)
+        :return: R^2
+        """
+        SSE = self.SSE()
+        TSS = self.TSS()
+
+        R_s = 1 - (SSE/TSS)
+        return(R_s)
+
+    def R_squared_adj(self):
+        """
+        Calculate adjusted R^2
+        :return: Return adjusted R^2
+        """
+        R_s = self.R_squared()
+        num = (1 - R_s)*(self.n - 1)
+        denom = (self.n - self.k - 1)
+        r_adj = 1-(num/denom)
+
+        return(r_adj)
+
 Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
 
 class Ridge_Regression:
@@ -171,5 +228,5 @@ class Ridge_Regression:
 abc = Ridge_Regression(a, Xs, 'area', 0.1)
 abd = Linear_Regression(a, Xs, 'area')
 
-print(abc.cal_weights())
-print(abd.cal_weights())
+print(abc.R_squared())
+print(abd.R_squared())
