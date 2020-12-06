@@ -126,6 +126,9 @@ class Linear_Regression:
 
         return(r_adj)
 
+    def get_weigts(self):
+        return self.cal_weights()
+
 Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
 
 class Ridge_Regression:
@@ -225,8 +228,9 @@ class Ridge_Regression:
 
         return(r_adj)
 
-abc = Ridge_Regression(a, Xs, 'area', 0.1)
+#abc = Ridge_Regression(a, Xs, 'area', 0.1)
 abd = Linear_Regression(a, Xs, 'area')
 
-print(abc.R_squared())
+print(abd.get_weigts())
+
 print(abd.R_squared())
