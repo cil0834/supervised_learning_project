@@ -8,6 +8,8 @@ data = pd.read_csv("forestfires.csv")
 
 
 zyx = data.iloc[0]
+y_data = data['area']
+targets = y_data.tolist()
 #print(zyx)
 #print(zyx['month'])
 
@@ -162,8 +164,21 @@ class Regression_Tree:
             predictions.append(predicted_value)
         return predictions
 
+    def calculate_error(self, predictions, targets):
+        """
+        Calculates the residual sum of squares
+        :param prediction: the predicted values
+        :param target: the target values
+        :return: Residual sum of squares
+        """
+        rss = 0
+        for prediction, target in zip(predictions, targets):
+            rss += (prediction - target) ** 2
 
+        return rss/len(predictions)
 
 abc = Regression_Tree(2, 2, data, Xs, 'area')
 abc.train_tree()
-print(abc.predict(data))
+predictions = abc.predict(data)
+
+print(abc.calculate_error(predictions, targets))
