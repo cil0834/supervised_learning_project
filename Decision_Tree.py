@@ -6,12 +6,19 @@ min_values = 10
 
 data = pd.read_csv("forestfires.csv")
 
+
+zyx = data.iloc[0]
+#print(zyx)
+#print(zyx['month'])
+
 #del data['X']
 #del data['Y']
 #del data['month']
 #del data['day']
 
 Xs= ['DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
+
+
 
 #abc = data['ISI'] < 9
 
@@ -124,6 +131,39 @@ class Regression_Tree:
     def train_tree(self):
         self.tree = self.split_tree(self.X, self.Y, 0, len(self.X))
 
+    def predict_individual(self, data_point):
+        """
+        A function that predicts and individual value
+        :param data_point: The data point being predicted
+        :return: The predicted value for the data point
+        """
+        prediction = None
+        branch = self.tree
+        while prediction == None:
+            category = branch['category']
+            threshold = branch['threshold']
+
+            if data_point[category] < threshold:
+                branch = branch['left_branch']
+            else:
+                branch = branch['right_branch']
+            prediction = branch.get("predicted_value")
+        return(prediction)
+
+    def predict(self, x_values):
+        """
+        The values that are going to be predicted
+        :param x_values: A data frame of predicted values
+        :return: An array of predicted values
+        """
+        predictions = []
+        for data in x_values.iloc:
+            predicted_value = self.predict_individual(data)
+            predictions.append(predicted_value)
+        return predictions
+
+
+
 abc = Regression_Tree(2, 2, data, Xs, 'area')
 abc.train_tree()
-print(abc.tree)
+print(abc.predict(data))
