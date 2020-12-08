@@ -94,8 +94,6 @@ class NeuralNetwork:
         #         row['ISI'], row['temp'], row['RH'], 
         #         row['wind'], row['rain']]
 
-        #print(input_fields)
-
         # for each layer...
         for i in range(len(self.hidden_weights)):
             # for each unit...
@@ -105,7 +103,7 @@ class NeuralNetwork:
                 # Sum using the input fields
                 if i == 0:
                     for index in range(8 + 1):
-                        sum += input_fields[index] * self.hidden_weights[i][j][index]
+                        sum += self.hidden_weights[i][j][index] * input_fields[index]
                     
                 # Sum using the hidden units 
                 else:
@@ -113,25 +111,80 @@ class NeuralNetwork:
                     for weight in range(len(self.hidden_weights[i][j])):
                         # sum(w * x)
                         sum += self.hidden_weights[i][j][weight] * self.hidden_unit_values[i-1][weight]
-                #print(self.sigmoid(sum))
-                #print(sum)
-                return
+
                 self.hidden_unit_values[i][j] = self.sigmoid(sum)
 
         # Compute the predicted output unit
+        # No activation function needed here
         sum = 0
         for i in range(len(self.hidden_unit_values[self.num_layers - 1])):
-            sum += self.hidden_unit_values[self.num_layers - 1][i] * self.output_weights[i]
-        self.predicted_output = self.sigmoid(sum)
+            sum += self.output_weights[i]* self.hidden_unit_values[self.num_layers - 1][i]
+        self.predicted_output = sum #self.sigmoid(sum)
 
-        # print(self.predicted_output)
-        # print(self.de_sigmoid(self.predicted_output))
+
+        print(f'predicted: {self.predicted_output}')
 
         return self.predicted_output
 
 
 
     def backpropagate_errors(self, row):
+
+        # Calculate output unit error and adjust output unit weights
+
+        output_error = row['area'] - self.predicted_output
+
+        print(f'output error {output_error}')
+        
+        # for each weights in output
+        for i in range(len(self.output_weights)):
+            delta_w = self.learning_rate * output_error * self.hidden_unit_values[self.num_layers - 1][i]
+            self.output_weights[i] += delta_w
+
+        
+        # Calculate hidden unit error and adjust hidden unit weights
+
+        # for each layer in reverse order...
+        for i in range(self.num_layers - 1, -1, -1):   
+            # for each unit...
+            for j in range(len(self.hidden_unit_values[i])):
+                hidden_unit_error = 0
+                if i == self.num_layers - 1:
+                    hidden_unit_error = self.hidden_unit_values[i][j] * (1 - self.hidden_unit_values[i][j]) * self.output_weights[j] * output_error
+                else:
+                    # for each unit in the next layer...
+                    for k in range(len(self.hidden_unit_values[i+1])):
+                        hidden_unit_error += self.hidden_unit_errors[i+1][k] * self.hidden_weights[i+1][k][j]
+                    
+                    hidden_unit_error *= (self.hidden_unit_values[i][j] * (1 - self.hidden_unit_values[i][j]))
+                    # maybe i dont need to track this
+                    self.hidden_unit_errors[i][j] = hidden_unit_error
+
+        # input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
+        #             row['ISI'], row['temp'], row['RH'], 
+        #             row['wind'], row['rain']]
+
+        
+        input_fields = [1, self.sigmoid(row['FFMC']), self.sigmoid(row['DMC']), self.sigmoid(row['DC']), 
+                        self.sigmoid(row['ISI']), self.sigmoid(row['temp']), self.sigmoid(row['RH']), 
+                        self.sigmoid(row['wind']), self.sigmoid(row['rain'])]
+
+        # Update the weights
+        
+        # for each layer..
+        for i in range(self.num_layers):
+            # for each unit..
+            for j in range(len(self.hidden_weights[i])):
+                # for each weights..
+                for k in range(len(self.hidden_weights[i][j])):
+                    if i == 0:
+                        self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * input_fields[k]
+                    else:
+                        self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * self.hidden_unit_values[i-1][k]
+
+
+
+        '''
 
         output_error = self.predicted_output * (1 - self.predicted_output) * (self.sigmoid(row['area']) - self.predicted_output)
 
@@ -177,6 +230,8 @@ class NeuralNetwork:
                     else:
                         self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * self.hidden_unit_values[i-1][k]
         
+        '''
+        
     def train(self):
 
         num_epoch = 0
@@ -212,7 +267,7 @@ class NeuralNetwork:
 
             area = row['area']
 
-            print(f'Prediction: {self.de_sigmoid(prediction)}\tActual: {area}')
+            print(f'Prediction: {prediction}\tActual: {area}')
         
         #print(f'Accuracy: {correct/315.0}')
     
@@ -227,7 +282,7 @@ class NeuralNetwork:
 
 
 
-neural = NeuralNetwork(data, [8], 0.05, 20000)
+neural = NeuralNetwork(data, [8], 0.05, 1000)
 neural.train()
 neural.test()
 
