@@ -6,7 +6,7 @@ import numpy as np
 W_default_val = 0.1
 
 #data = pd.read_csv('forestfires_nozeros.csv')
-data = pd.read_csv('forestfires_nozeros.csv')
+data = pd.read_csv('testfile.csv')
 del data['X']
 del data['Y']
 del data['month']
@@ -76,6 +76,13 @@ class NeuralNetwork:
         for i in range(network_info[self.num_layers - 1]):
             self.output_weights.append(np.random.uniform(-weight_default, weight_default))
 
+        # for i in range(len(self.hidden_weights)):
+        #     print(f'Layer {i}')
+        #     for j in range(len(self.hidden_weights[i])):
+        #         print(f'Unit {j}')
+        #         for k in range(len(self.hidden_weights[i][j])):
+        #             print(self.hidden_weights[i][j][k])
+
 
     def propagate_input_forward(self, row):
 
@@ -106,7 +113,9 @@ class NeuralNetwork:
                     for weight in range(len(self.hidden_weights[i][j])):
                         # sum(w * x)
                         sum += self.hidden_weights[i][j][weight] * self.hidden_unit_values[i-1][weight]
-
+                #print(self.sigmoid(sum))
+                #print(sum)
+                return
                 self.hidden_unit_values[i][j] = self.sigmoid(sum)
 
         # Compute the predicted output unit
@@ -123,8 +132,7 @@ class NeuralNetwork:
 
 
     def backpropagate_errors(self, row):
-        #print(row['area'])
-        #print(self.predicted_output)
+
         output_error = self.predicted_output * (1 - self.predicted_output) * (self.sigmoid(row['area']) - self.predicted_output)
 
         # Calculate errors for the hidden units
@@ -133,7 +141,7 @@ class NeuralNetwork:
         for i in range(self.num_layers - 1, -1, -1):
             #for each units...
             for j in range(len(self.hidden_unit_values[i])):
-                hidden_unit_error = 0
+                hidden_unit_error = 0 
                 # The layer is the last hidden layer - update from output unit
                 if i == self.num_layers - 1:
                     hidden_unit_error = self.hidden_unit_values[i][j] * (1 - self.hidden_unit_values[i][j]) * self.output_weights[j] * output_error
@@ -148,13 +156,13 @@ class NeuralNetwork:
                 self.hidden_unit_errors[i][j] = hidden_unit_error
 
 
-        # input_fields = [1, self.sigmoid(row['FFMC']), self.sigmoid(row['DMC']), self.sigmoid(row['DC']), 
-        #                 self.sigmoid(row['ISI']), self.sigmoid(row['temp']), self.sigmoid(row['RH']), 
-        #                 self.sigmoid(row['wind']), self.sigmoid(row['rain'])]
+        input_fields = [1, self.sigmoid(row['FFMC']), self.sigmoid(row['DMC']), self.sigmoid(row['DC']), 
+                        self.sigmoid(row['ISI']), self.sigmoid(row['temp']), self.sigmoid(row['RH']), 
+                        self.sigmoid(row['wind']), self.sigmoid(row['rain'])]
 
-        input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
-        row['ISI'], row['temp'], row['RH'], 
-        row['wind'], row['rain']]
+        # input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
+        # row['ISI'], row['temp'], row['RH'], 
+        # row['wind'], row['rain']]
 
         # Update the weights
         
@@ -184,12 +192,12 @@ class NeuralNetwork:
             
             num_epoch += 1
         
-        # for i in range(len(self.hidden_weights)):
-        #     print(f'Layer {i}')
-        #     for j in range(len(self.hidden_weights[i])):
-        #         print(f'Unit {j}')
-        #         for k in range(len(self.hidden_weights[i][j])):
-        #             print(self.hidden_weights[i][j][k])
+        for i in range(len(self.hidden_weights)):
+            print(f'Layer {i}')
+            for j in range(len(self.hidden_weights[i])):
+                print(f'Unit {j}')
+                for k in range(len(self.hidden_weights[i][j])):
+                    print(self.hidden_weights[i][j][k])
 
     def test(self):
 
@@ -202,17 +210,9 @@ class NeuralNetwork:
 
             prediction = self.propagate_input_forward(row)
 
-            print(f'prediction: {prediction}')
-            #print(f'Actual: {self.sigmoid(row['area'])}')
+            area = row['area']
 
-            print('\n\n Desigmoided')
-            print(f'prediction: {self.de_sigmoid(prediction)}')
-            # area = (float)row['area']
-            # print(f'Actual: {area}')
-
-            return
-            # if abs(prediction - row['area'] < 2):
-            #     correct += 1
+            print(f'Prediction: {self.de_sigmoid(prediction)}\tActual: {area}')
         
         #print(f'Accuracy: {correct/315.0}')
     
@@ -221,13 +221,13 @@ class NeuralNetwork:
         return (1 / (1 + math.exp(-val)))
     
     def de_sigmoid(self, val):
-        return -math.log(1/val - 1)
+        return -math.log(val / (1-val))
 
 
 
 
 
-neural = NeuralNetwork(data, [8, 8], 0.05, 5000)
+neural = NeuralNetwork(data, [8], 0.05, 20000)
 neural.train()
 neural.test()
 
