@@ -3,22 +3,13 @@ import numpy as np
 import math
 import numpy as np
 
-W_default_val = 0.1
-
 #data = pd.read_csv('forestfires_nozeros.csv')
 data = pd.read_csv('testfile.csv')
 #data = pd.read_csv('testfile_one.csv')
 #data = pd.read_csv('forestfires.csv')
-# del data['X']
-# del data['Y']
-# del data['month']
-# del data['day']
 
 data_test = pd.read_csv('testfile_two.csv')
-# del data_test['X']
-# del data_test['Y']
-# del data_test['month']
-# del data_test['day']
+
 
 
 def process_dataset(dataset):
@@ -138,12 +129,6 @@ class NeuralNetwork:
         for i in range(network_info[self.num_layers - 1]):
             self.output_weights.append(np.random.uniform(-weight_default, weight_default))
 
-        # for i in range(len(self.hidden_weights)):
-        #     print(f'Layer {i}')
-        #     for j in range(len(self.hidden_weights[i])):
-        #         print(f'Unit {j}')
-        #         for k in range(len(self.hidden_weights[i][j])):
-        #             print(self.hidden_weights[i][j][k])
 
 
     def propagate_input_forward(self, row):
@@ -175,23 +160,15 @@ class NeuralNetwork:
                         sum += self.hidden_weights[i][j][weight] * self.hidden_unit_values[i-1][weight]
 
                 self.hidden_unit_values[i][j] = self.sigmoid(sum)
-                # if i == 0 and j == 0:
-                #     #print(self.hidden_unit_values[i][j])
-                #     #print(self.sigmoid(sum))
-                #     print(sum)
+
 
         # Compute the predicted output unit
         # No activation function needed here
         sum = 0
-        #for i in range(len(self.hidden_unit_values[self.num_layers - 1])):
-        #print(len(self.output_weights))
         for i in range(len(self.output_weights)):
-            sum += self.output_weights[i] * self.hidden_unit_values[self.num_layers - 1][i] #<- this value 1
-            #print(self.hidden_unit_values[self.num_layers - 1][i])
-        self.predicted_output = sum #self.sigmoid(sum)
+            sum += self.output_weights[i] * self.hidden_unit_values[self.num_layers - 1][i]
 
-
-        #print(f'predicted: {self.predicted_output}')
+        self.predicted_output = sum 
 
         return self.predicted_output
 
@@ -200,17 +177,12 @@ class NeuralNetwork:
     def backpropagate_errors(self, row):
 
         input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
-            row['ISI'], row['temp'], row['RH'], 
-            row['wind'], row['rain']]
+                        row['ISI'], row['temp'], row['RH'], 
+                        row['wind'], row['rain']]
 
         # Calculate output unit error and adjust output unit weights
 
         output_error = row['area'] - self.predicted_output
-        area = row['area']
-        # print(f'{area}, {self.predicted_output}')
-        # print(output_error)
-
-        #print(f'output error {output_error}')
         
         # for each weights in output
         for i in range(len(self.output_weights)):
@@ -227,13 +199,9 @@ class NeuralNetwork:
                 hidden_unit_error = 0
                 if i == self.num_layers - 1:
                     hidden_unit_error = self.hidden_unit_values[i][j] * (1 - self.hidden_unit_values[i][j]) * self.output_weights[j] * output_error
-                    #print(hidden_unit_error)
 
                     for k in range(len(self.hidden_weights[i][j])):
-                        if i == 0:
-                            self.hidden_weights[i][j][k] += self.learning_rate * hidden_unit_error * input_fields[k]
-                        else:
-                            self.hidden_weights[i][j][k] += self.learning_rate * hidden_unit_error * self.hidden_unit_values[i-1][k]
+                        self.hidden_weights[i][j][k] += self.learning_rate * hidden_unit_error * self.hidden_unit_values[i-1][k]
 
                 else:
                     # for each unit in the next layer...
@@ -248,88 +216,17 @@ class NeuralNetwork:
                         else:
                             self.hidden_weights[i][j][k] += self.learning_rate * hidden_unit_error * self.hidden_unit_values[i-1][k]
 
-
-                    # maybe i dont need to track this
                 self.hidden_unit_errors[i][j] = hidden_unit_error
-
-
-
-
-        # Update the weights
-        
-        # # for each layer..
-        # for i in range(self.num_layers):
-        #     # for each unit..
-        #     for j in range(len(self.hidden_weights[i])):
-        #         # for each weights..
-        #         for k in range(len(self.hidden_weights[i][j])):
-        #             if i == 0:
-        #                 self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * input_fields[k]
-        #             else:
-        #                 self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * self.hidden_unit_values[i-1][k]
-
-
-
-        '''
-
-        output_error = self.predicted_output * (1 - self.predicted_output) * (self.sigmoid(row['area']) - self.predicted_output)
-
-        # Calculate errors for the hidden units
-
-        # Iterate layers backwards 
-        for i in range(self.num_layers - 1, -1, -1):
-            #for each units...
-            for j in range(len(self.hidden_unit_values[i])):
-                hidden_unit_error = 0 
-                # The layer is the last hidden layer - update from output unit
-                if i == self.num_layers - 1:
-                    hidden_unit_error = self.hidden_unit_values[i][j] * (1 - self.hidden_unit_values[i][j]) * self.output_weights[j] * output_error
-                # The layer isn't the last hidden layer - update from other units
-                else:
-                    # for each units in the next layer...
-                    for k in range(len(self.hidden_unit_values[i+1])):
-                        hidden_unit_error += self.hidden_weights[i+1][k][j] * self.hidden_unit_errors[i+1][k]
-
-                    hidden_unit_error *= (self.hidden_unit_values[i][j] * (1 - self.hidden_unit_values[i][j]))
-                
-                self.hidden_unit_errors[i][j] = hidden_unit_error
-
-
-        input_fields = [1, self.sigmoid(row['FFMC']), self.sigmoid(row['DMC']), self.sigmoid(row['DC']), 
-                        self.sigmoid(row['ISI']), self.sigmoid(row['temp']), self.sigmoid(row['RH']), 
-                        self.sigmoid(row['wind']), self.sigmoid(row['rain'])]
-
-        # input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
-        # row['ISI'], row['temp'], row['RH'], 
-        # row['wind'], row['rain']]
-
-        # Update the weights
-        
-        # for each layer..
-        for i in range(self.num_layers):
-            # for each unit..
-            for j in range(len(self.hidden_weights[i])):
-                # for each weights..
-                for k in range(len(self.hidden_weights[i][j])):
-                    if i == 0:
-                        self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * input_fields[k]
-                    else:
-                        self.hidden_weights[i][j][k] += self.learning_rate * self.hidden_unit_errors[i][j] * self.hidden_unit_values[i-1][k]
-        
-        '''
         
     def train(self):
 
         num_epoch = 0
 
         while (num_epoch < self.epoch):
-
             for index, row in self.data.iterrows():
-
                 self.propagate_input_forward(row)
                 self.backpropagate_errors(row)
             
-
             if num_epoch % 100 == 0:
                 print(num_epoch)
             
@@ -340,10 +237,8 @@ class NeuralNetwork:
 
         rss_sum = 0
 
-        count = 0
         for index, row in self.data_test.iterrows():
             
-
             prediction = self.propagate_input_forward(row)
             self.backpropagate_errors(row)
 
@@ -352,24 +247,18 @@ class NeuralNetwork:
 
             rss_sum += ((prediction - area) ** 2)
 
-            count += 1
 
         print(rss_sum)
         return rss_sum
-            
 
-    
 
     def sigmoid(self, val):
         return (1 / (1 + math.exp(-val)))
     
-    def de_sigmoid(self, val):
-        return -math.log(val / (1-val))
 
 
 
 
-#[10, 8]
 neural = NeuralNetwork(data_all, data_all, [10, 8], 0.05, 10000)
 neural.train()
 neural.test()
