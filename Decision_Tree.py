@@ -4,41 +4,6 @@ import numpy as np
 max_depth = 5
 min_values = 10
 
-data = pd.read_csv("forestfires.csv")
-
-
-zyx = data.iloc[0]
-y_data = data['area']
-targets = y_data.tolist()
-#print(zyx)
-#print(zyx['month'])
-
-#del data['X']
-#del data['Y']
-#del data['month']
-#del data['day']
-
-Xs= ['DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
-
-
-
-#abc = data['ISI'] < 9
-
-#print(data[abc])
-#data = data[Xs].copy()
-#print(data)
-#X = data.to_numpy()
-#print(X)
-
-
-def RSS(node):
-    """
-    Calculates the residual sum of squares of a tree. This function is used to determine when to split the tree
-    :param tree: a decision tree at a potential splitting point
-    :return: The residual sum of squares of the tree
-    """
-    return (np.sum(node - np.mean(node)) ** 2)
-
 class Regression_Tree:
     def __init__(self, max_depth, min_values, data, x, response):
         """
@@ -47,7 +12,7 @@ class Regression_Tree:
         :param min_values: The minimum values allowed in a single node
         :param data: The data that is being used
         :param x: The independent variables
-        :param y: The response
+        :param response: The response
         """
         self.max_depth = max_depth
         self.min_values = min_values
@@ -98,26 +63,29 @@ class Regression_Tree:
                     chosen_category = category
                     chosen_threshold = threshold
 
-        return {'category': chosen_category, 'threshold': chosen_threshold}
+        return chosen_category, chosen_threshold
 
     def split_tree(self, x, y, depth, tree_size):
         """
         Split the tree based on learning rule
         :param x: The independent variables
         :param y: The response
+        :param depth: The current depth of the tree
+        :param tree_size: The current size of the tree
+        :return: a decision tree or a mean if the tree is at the end
         """
         # If the tree is not big enough or if the tree is at the final depth then find the average
         if depth >= self.max_depth or tree_size <= self.min_values:
-            return {'predicted_value': np.mean(y)}
+            mean = sum(y)/len(y)
+            return {'predicted_value': mean}
 
         # We are not ready to make a prediction so we search for the best category and corresponding threshold
         else:
             # find the best category and corresponding threshold
-            tree = self.best_category_threshold(x, y)
+            chosen_category, chosen_threshold  = self.best_category_threshold(x, y)
+            tree = {'category': chosen_category, 'threshold': chosen_threshold}
 
-            # find the indes that correspond to the categories and thresholds
-            chosen_category = tree['category']
-            chosen_threshold = tree['threshold']
+            # find the indexes that correspond to the categories and thresholds
             left_index = x[chosen_category] < chosen_threshold
             right_index = x[chosen_category] >= chosen_threshold
 
@@ -126,8 +94,10 @@ class Regression_Tree:
             y_left = y[left_index]
             y_right = y[right_index]
 
-            tree['left_branch'] = self.split_tree(x_left, y_left, depth+1, len(x_left))
-            tree['right_branch'] = self.split_tree(x_right, y_right, depth+1, len(x_right))
+            if (len(x_left) > 0):
+                tree['left_branch'] = self.split_tree(x_left, y_left, depth+1, len(x_left))
+            if (len(x_right > 0)):
+                tree['right_branch'] = self.split_tree(x_right, y_right, depth+1, len(x_right))
             return tree
 
     def train_tree(self):
@@ -172,13 +142,29 @@ class Regression_Tree:
         :return: Residual sum of squares
         """
         rss = 0
+        i = 0
         for prediction, target in zip(predictions, targets):
-            rss += (prediction - target) ** 2
+            i += 1
+            rss += ((prediction - target) ** 2)
 
         return rss/len(predictions)
 
-abc = Regression_Tree(2, 2, data, Xs, 'area')
+    def predict_values(self, predictions, targets):
+
+        for prediction, target in zip(predictions, targets):
+            print("The prediction is: ", prediction, ". The true value is: ", target)
+
+data = pd.read_csv("forestfires.csv")
+
+data['area'] = data['area']
+Xs= ['DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
+zyx = data.iloc[0]
+y_data = data['area']
+targets = (y_data.tolist())
+
+abc = Regression_Tree(7, 10, data, Xs, 'area')
 abc.train_tree()
 predictions = abc.predict(data)
 
-print(abc.calculate_error(predictions, targets))
+#print(abc.predict_values(predictions, targets))
+#print(abc.calculate_error(predictions, targets))
