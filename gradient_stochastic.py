@@ -59,8 +59,6 @@ class Gradient:
 
         self.W0 = self.W1 = self.W2 = self.W3 = self.W4 = self.W5 = self.W6 = self.W7 = self.W8 = W_default_val
 
-
-
         self.learning_rate = learning_rate
         row, self.col = self.data.shape
 
@@ -72,16 +70,6 @@ class Gradient:
             if i % 100 == 0:
                 print(i)
             self.train()
-        
-        print(self.W0)
-        print(self.W1)
-        print(self.W2)
-        print(self.W3)
-        print(self.W4)
-        print(self.W5)
-        print(self.W6)
-        print(self.W7)
-        print(self.W8)
 
 
     def train(self):
@@ -89,21 +77,9 @@ class Gradient:
         # Iterate through all training examples
         for index, row in self.data.iterrows():
 
-           
-
-            if index < 140:
-                continue
-
-            # if index > 143:
-            #     break
-
-            #print('Example ' + str(index))
-
             # Calculate output
             output = self.calculate_output(row['FFMC'], row['DMC'], row['DC'], row['ISI'], 
                                            row['temp'], row['RH'], row['wind'], row['rain'])
-            #print(str(self.Y[index]) + ',' + str(output))
-            #print(str(self.Y[index]) + ', ' + str(output) + ', ' + str(self.Y[index] - output))
             
             # Update Weight values
             self.W0 = self.W0 + self.learning_rate * (row['area'] - output) * 1

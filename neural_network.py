@@ -3,12 +3,8 @@ import numpy as np
 import math
 import numpy as np
 
-#data = pd.read_csv('forestfires_nozeros.csv')
-data = pd.read_csv('testfile.csv')
-#data = pd.read_csv('testfile_one.csv')
-#data = pd.read_csv('forestfires.csv')
+data = pd.read_csv('forestfires_nozeros.csv')
 
-data_test = pd.read_csv('testfile_two.csv')
 
 
 
