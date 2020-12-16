@@ -7,7 +7,13 @@ data = pd.read_csv('forestfires_nozeros.csv')
 
 
 
+'''
+Preprocessing the data given - 
+Deletes categorical variables and transforms the data to log
 
+:param dataset: the dataset in pandas
+:return: processed data in pandas
+'''
 def process_dataset(dataset):
     del dataset['X']
     del dataset['Y']
@@ -52,15 +58,7 @@ def process_dataset(dataset):
 
     return dataset
 
-data = process_dataset(pd.read_csv('testfile.csv'))
-data_test = process_dataset(pd.read_csv('testfile_two.csv'))
-
-data_all = process_dataset(pd.read_csv('forestfires.csv'))
-
-
-# Inputs: FFMC DMC DC ISI temp RH wind rain	
-# Output: area
-
+# Weights are randomly initialized between -weight_default and weight_default
 weight_default = 0.01
 
 
@@ -68,6 +66,15 @@ class NeuralNetwork:
 
     # layers_and_units: list of units for each layer. ex) [5, 10, 20]
     def __init__(self, data, data_test, network_info, learning_rate, epoch):
+
+        '''
+        The initialization of Neural Network class
+
+        :param data: data to train network with
+        :param network_info: The specification of number of hidden layers and number of hidden units
+        :param learning_rate: the learning rate of the network
+        :param epoch: number of times data is trained
+        '''
         
         # test with this data
         self.data_test = data_test
@@ -128,6 +135,12 @@ class NeuralNetwork:
 
 
     def propagate_input_forward(self, row):
+
+        '''
+        The feed forward step
+
+        :param row: The input row
+        '''
         
         input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
                         row['ISI'], row['temp'], row['RH'], 
@@ -171,6 +184,12 @@ class NeuralNetwork:
 
 
     def backpropagate_errors(self, row):
+
+        '''
+        The backpropagation step
+
+        :param row: The row that has been fed forward
+        '''
 
         input_fields = [1, row['FFMC'], row['DMC'], row['DC'], 
                         row['ISI'], row['temp'], row['RH'], 
@@ -216,6 +235,10 @@ class NeuralNetwork:
         
     def train(self):
 
+        '''
+        Train neural network by feeding forward and backpropagating
+        '''
+
         num_epoch = 0
 
         while (num_epoch < self.epoch):
@@ -249,6 +272,12 @@ class NeuralNetwork:
 
 
     def sigmoid(self, val):
+        '''
+        The activation function for hidden units
+
+        Result is always between 0 and 1
+        :param val: the input
+        '''
         return (1 / (1 + math.exp(-val)))
     
 
