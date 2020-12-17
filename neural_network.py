@@ -252,6 +252,6 @@ data_validate = process_dataset(pd.read_csv('validation.csv'))
 data_test = process_dataset(pd.read_csv('test.csv'))
 
 
-neural = NeuralNetwork(data_train, data_validate, [5,5], 0.05, 5000)
+neural = NeuralNetwork(data_train, data_test, [3, 3], 0.05, 5000)
 neural.train()
 neural.test()
