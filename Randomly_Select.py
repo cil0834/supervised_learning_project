@@ -10,6 +10,7 @@ def select_indexes(n, number_of_values):
     index_array = np.linspace(0, n-1, n).tolist()
 
     return random.sample(index_array, number_of_values)
+<<<<<<< HEAD
 
 #sample = select_indexes(300, 200)
 #print(sample)
@@ -23,3 +24,5 @@ index_array = [1, 2, 3, 4, 5]
 
 #print(len(select_indexes(300, 200)))
 
+=======
+>>>>>>> 84c3c5e40f93cfbbd8be83245d762a6ddb90b661

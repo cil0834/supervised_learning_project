@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from Decision_Tree import Regression_Tree
 import random
+from sklearn.model_selection import train_test_split
+import math
 
 class Random_Forest:
     def __init__(self, n_attributes, max_depth, min_values, data, x, forest_size, response):
@@ -71,8 +73,8 @@ class Random_Forest:
         :return: An array of predicted values
         """
         predictions = []
-        current_predictions = 0
         for x_value in x_values.iloc:
+            current_predictions = 0
             for tree in self.forest:
                 prediction = self.predict_individual(x_value, tree)
                 current_predictions += prediction
@@ -90,25 +92,55 @@ class Random_Forest:
         rss = 0
         for prediction, target in zip(predictions, targets):
             rss += ((prediction - target) ** 2)
-            print("Prediction: ", prediction, " Target: ", target)
-        return rss/len(predictions)
-
+            #print("Prediction: ", prediction, " Target: ", target)
+        return math.sqrt(rss/len(predictions))
 
 data = pd.read_csv("forestfires.csv")
+Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
+data['area'] = np.log2(data['area'] + 1)
+train, test = train_test_split(data, test_size=0.2)
+train, validation = train_test_split(train, test_size=0.25)
+test_y = test['area']
 
-Xs= ['DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
-
-#print(data.head())
-#data = data[Xs]
-#print(data.head())
 
 
-x_vals = data[Xs]
-y_vals = data['area'].iloc
 abc = Random_Forest(4, 5, 3, data, Xs, 100, 'area')
 
-abc.build_forest()
-predictions = abc.predict(x_vals)
+#abc.build_forest()
+#predictions = abc.predict(x_vals)
+#error = abc.calculate_error(predictions, y_vals)
+#print(error)
 
-error = abc.calculate_error(predictions, y_vals)
-print(error)
+
+best_error = np.inf
+best_size = 0
+
+f_5 = Random_Forest(4, 3, 10, data, Xs, 5, 'area')
+f_5.build_forest()
+prediction = f_5.predict(validation)
+error = f_5.calculate_error(prediction, validation['area'])
+print(" The forest size is: 5", " The error is: ", error)
+
+f_10 = Random_Forest(4, 3, 10, data, Xs, 10, 'area')
+f_10.build_forest()
+prediction = f_10.predict(validation)
+error = f_10.calculate_error(prediction, validation['area'])
+print(" The forest size is: 10", " The error is: ", error)
+
+f_50 = Random_Forest(4, 3, 10, data, Xs, 50, 'area')
+f_50.build_forest()
+prediction = f_50.predict(validation)
+error = f_50.calculate_error(prediction, validation['area'])
+print(" The forest size is: 50", " The error is: ", error)
+
+f_100 = Random_Forest(4, 3, 10, data, Xs, 100, 'area')
+f_100.build_forest()
+prediction = f_100.predict(validation)
+error = f_100.calculate_error(prediction, validation['area'])
+print(" The forest size is: 100", " The error is: ", error)
+
+f_200 = Random_Forest(4, 3, 10, data, Xs, 200, 'area')
+f_200.build_forest()
+prediction = f_200.predict(validation)
+error = f_200.calculate_error(prediction, validation['area'])
+print(" The forest size is: 200", " The error is: ", error)
