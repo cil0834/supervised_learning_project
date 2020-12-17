@@ -98,49 +98,61 @@ class Random_Forest:
 data = pd.read_csv("forestfires.csv")
 Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
 data['area'] = np.log2(data['area'] + 1)
-train, test = train_test_split(data, test_size=0.2)
-train, validation = train_test_split(train, test_size=0.25)
+
+
+train = pd.read_csv('train.csv')
+validation = pd.read_csv('validation.csv')
+test = pd.read_csv('test.csv')
+
+train['area'] = np.log2(train['area'] + 1)
+validation['area'] = np.log2(validation['area'] + 1)
+test['area'] = np.log2(test['area'] + 1)
+
+
 test_y = test['area']
-
-
-
-abc = Random_Forest(4, 5, 3, data, Xs, 100, 'area')
-
+validation_y = validation['area']
 #abc.build_forest()
 #predictions = abc.predict(x_vals)
 #error = abc.calculate_error(predictions, y_vals)
 #print(error)
 
-
-best_error = np.inf
-best_size = 0
-
-f_5 = Random_Forest(4, 3, 10, data, Xs, 5, 'area')
+'''
+f_5 = Random_Forest(4, 2, 10, train, Xs, 5, 'area')
 f_5.build_forest()
 prediction = f_5.predict(validation)
 error = f_5.calculate_error(prediction, validation['area'])
 print(" The forest size is: 5", " The error is: ", error)
 
-f_10 = Random_Forest(4, 3, 10, data, Xs, 10, 'area')
+f_10 = Random_Forest(4, 2, 10, train, Xs, 10, 'area')
 f_10.build_forest()
 prediction = f_10.predict(validation)
 error = f_10.calculate_error(prediction, validation['area'])
 print(" The forest size is: 10", " The error is: ", error)
 
-f_50 = Random_Forest(4, 3, 10, data, Xs, 50, 'area')
+f_50 = Random_Forest(4, 2, 10, train, Xs, 50, 'area')
 f_50.build_forest()
 prediction = f_50.predict(validation)
 error = f_50.calculate_error(prediction, validation['area'])
 print(" The forest size is: 50", " The error is: ", error)
 
-f_100 = Random_Forest(4, 3, 10, data, Xs, 100, 'area')
+f_100 = Random_Forest(4, 2, 10, train, Xs, 100, 'area')
 f_100.build_forest()
 prediction = f_100.predict(validation)
 error = f_100.calculate_error(prediction, validation['area'])
 print(" The forest size is: 100", " The error is: ", error)
 
-f_200 = Random_Forest(4, 3, 10, data, Xs, 200, 'area')
+f_200 = Random_Forest(4, 2, 10, train, Xs, 200, 'area')
 f_200.build_forest()
 prediction = f_200.predict(validation)
 error = f_200.calculate_error(prediction, validation['area'])
 print(" The forest size is: 200", " The error is: ", error)
+'''
+
+training = [train, validation]
+training = pd.concat(training)
+f_5 = Random_Forest(4, 2, 10, training, Xs, 200, 'area')
+f_5.build_forest()
+prediction = f_5.predict(validation)
+error = f_5.calculate_error(prediction, validation['area'])
+print(" The forest size is: 5", " The error is: ", error)
+

@@ -24,19 +24,19 @@ class Regression_Tree:
         self.Y = data[response]
         self.tree = {}
 
-    def RSS(self, node):
+    def TSS(self, node):
         """
         Calculates the residual sum of squares of a tree. This function is used to determine when to split the tree
         :param node: a decision tree at a potential splitting point
         :return: The residual sum of squares of the tree
         """
         mean_val = np.mean(node)
-        rss = 0
+        tss = 0
         for y_val in node:
             difference = y_val - mean_val
             difference = difference ** 2
-            rss = rss + difference
-        return rss
+            tss = tss + difference
+        return tss
 
     def best_category_threshold(self, x, y):
         """
@@ -48,7 +48,7 @@ class Regression_Tree:
         # set the category and threshold to none because there is no best value for these yet.
         chosen_category = None
         chosen_threshold = None
-        current_rss = np.inf
+        current_tss = np.inf
 
         # loop through the categories
         for category in x.columns:
@@ -57,12 +57,12 @@ class Regression_Tree:
             for threshold in thresholds:
                 left = x[category] < threshold
                 right = x[category] >= threshold
-                left_rss = self.RSS(y[left])
-                right_rss = self.RSS(y[right])
-                rss = left_rss + right_rss
+                left_tss = self.TSS(y[left])
+                right_tss = self.TSS(y[right])
+                tss = left_tss + right_tss
                 # select a new category and threshold if a better one is found
-                if rss < current_rss:
-                    current_rss = rss
+                if tss < current_tss:
+                    current_tss = tss
                     chosen_category = category
                     chosen_threshold = threshold
 
@@ -163,17 +163,27 @@ data = pd.read_csv("forestfires.csv")
 
 data = pd.read_csv("forestfires.csv")
 Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
-data['area'] = np.log2(data['area'] + 1)
-train, test = train_test_split(data, test_size=0.2)
-train, validation = train_test_split(train, test_size=0.25)
+#data['area'] = np.log2(data['area'] + 1)
+#train, test = train_test_split(data, test_size=0.2)
+#train, validation = train_test_split(train, test_size=0.25)
+
+train = pd.read_csv('train.csv')
+validation = pd.read_csv('validation.csv')
+test = pd.read_csv('test.csv')
+
+train['area'] = np.log2(train['area'] + 1)
+validation['area'] = np.log2(validation['area'] + 1)
+test['area'] = np.log2(test['area'] + 1)
+
+
 test_y = test['area']
 validation_y = validation['area']
-
+'''
 best_error = np.inf
 best_depth = 0
 min_val = 10
 for depth in range(1, 6):
-        dt = Regression_Tree(depth, min_val, data, Xs, 'area')
+        dt = Regression_Tree(depth, min_val, train, Xs, 'area')
         dt.train_tree()
         predictions = dt.predict(validation)
         error = dt.calculate_error(predictions, validation_y)
@@ -185,10 +195,13 @@ for depth in range(1, 6):
 
 print("The best depth is: ", best_depth, " The best validation error is: ", best_error)
 
-dt = Regression_Tree(3, 10, data, Xs, 'area')
+training = [train, validation]
+training = pd.concat(training)
 
+dt = Regression_Tree(2, 10, training, Xs, 'area')
 dt.train_tree()
-predictions = dt.predict(validation)
+predictions = dt.predict(test)
 testing_error = dt.calculate_error(predictions, test_y)
 
 print("The testing error is: ", testing_error)
+'''

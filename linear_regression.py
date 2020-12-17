@@ -20,20 +20,21 @@ def calculate_error(predictions, targets):
 
 
 
-data = pd.read_csv("forestfires.csv")
+Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
+train = pd.read_csv('train.csv')
+validation = pd.read_csv('validation.csv')
+test = pd.read_csv('test.csv')
 
-Xs= ['temp', 'RH', 'wind', 'rain']
-data['area'] = np.log2(data['area'] + 1)
+train['area'] = np.log2(train['area'] + 1)
+validation['area'] = np.log2(validation['area'] + 1)
+test['area'] = np.log2(test['area'] + 1)
+training = [train, validation]
+training = pd.concat(training)
 
-train, test = train_test_split(data, test_size=0.2)
 linear_model = LinearRegression()
-linear_model.fit(train[Xs], train['area'])
+linear_model.fit(training[Xs], training['area'])
 
 predictions = linear_model.predict(test[Xs])
 
 error = calculate_error(predictions, test['area'])
 print(error)
-
-r_squared = r2_score(test['area'], predictions)
-
-print(r_squared)

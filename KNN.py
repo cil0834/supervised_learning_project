@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import math
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
 
 
 class KNN:
@@ -104,36 +106,47 @@ class KNN:
         return math.sqrt(rss/len(predictions))
 
 
-data = pd.read_csv("forestfires.csv")
-Xs= ['temp', 'RH', 'wind', 'rain']
-data['area'] = np.log2(data['area'] + 1)
-train, test = train_test_split(data, test_size=0.2)
-train, validation = train_test_split(train, test_size=0.25)
+Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
+train = pd.read_csv('train.csv')
+validation = pd.read_csv('validation.csv')
+test = pd.read_csv('test.csv')
+
+train['area'] = np.log2(train['area'] + 1)
+validation['area'] = np.log2(validation['area'] + 1)
+test['area'] = np.log2(test['area'] + 1)
 validation_y = validation['area']
 test_y = test['area']
-
+'''
 best_index = 0
 best_error = np.inf
-for i in range(1, 20):
+errors = []
+for i in range(1, 21):
     knn = KNN(i, Xs, 'area', train)
     predictions = knn.predict(validation)
     current_error = knn.calculate_error(predictions, validation_y)
+    errors.append(current_error)
     print("Number of neighbors: ", i, " MSE: ", current_error)
     if (current_error < best_error):
         best_error = current_error
         best_index = i
 
-print("Best numbers of neighbors: ", best_index, " Best error: ", current_error)
+print("Best numbers of neighbors: ", best_index, " Best error: ", best_error)
 
-for i in range(1, 20):
-    knn = KNN(i, Xs, 'area', train)
-    predictions = knn.predict(test)
-    current_error = knn.calculate_error(predictions, test_y)
-    print("Number of neighbors: ", i, " MSE Final: ", current_error)
+y = np.linspace(1, 20, 20)
+plt.plot(errors)
+plt.scatter(y, errors, marker='o');
+plt.ylabel('Validation RMSE')
+plt.xlabel("Number of Neighbors")
+plt.title("RMSE vs. Number of Neighbors")
+plt.show()
+'''
 
-    train, test = train_test_split(data, test_size=0.2)
-    knn = KNN(best_index, Xs, 'area', train)
-    predictions = knn.predict(test)
-    final_error = knn.calculate_error(predictions, test_y)
+training = [train, validation]
+training = pd.concat(training)
 
-    print("The error is: ", final_error)
+knn = KNN(14, Xs, 'area', training)
+predictions = knn.predict(test)
+current_error = knn.calculate_error(predictions, test_y)
+
+print(current_error)
+
