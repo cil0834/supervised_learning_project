@@ -2,7 +2,14 @@ import pandas as pd
 import numpy as np
 import math
 import numpy as np
-from Randomly_Select import select_indexes
+
+#data_all = pd.read_csv('forestfires_nozeros.csv')
+#data = pd.read_csv('testfile.csv')
+#data = pd.read_csv('testfile_one.csv')
+#data = pd.read_csv('forestfires.csv')
+
+#data_test = pd.read_csv('testfile_two.csv')
+
 
 
 def process_dataset(dataset):
@@ -49,8 +56,14 @@ def process_dataset(dataset):
 
     return dataset
 
+# data = process_dataset(pd.read_csv('testfile.csv'))
+# data_test = process_dataset(pd.read_csv('testfile_two.csv'))
+
 data_all = process_dataset(pd.read_csv('forestfires.csv'))
 
+
+# Inputs: FFMC DMC DC ISI temp RH wind rain	
+# Output: area
 
 weight_default = 0.01
 
@@ -224,18 +237,15 @@ class NeuralNetwork:
 
         rss_sum = 0
 
-        indices_selected = select_indexes(517, 250)
-
         for index, row in self.data_test.iterrows():
+            
+            prediction = self.propagate_input_forward(row)
+            self.backpropagate_errors(row)
 
-            if index in indices_selected:        
-                prediction = self.propagate_input_forward(row)
-                self.backpropagate_errors(row)
+            area = row['area']
+            print(f'Prediction: {prediction}\tActual: {area}')
 
-                area = row['area']
-                #print(f'Prediction: {prediction}\tActual: {area}')
-
-                rss_sum += ((prediction - area) ** 2)
+            rss_sum += ((prediction - area) ** 2)
 
 
         print(rss_sum)
@@ -249,6 +259,6 @@ class NeuralNetwork:
 
 
 
-neural = NeuralNetwork(data_all, data_all, [10, 8], 0.05, 5000)
+neural = NeuralNetwork(data_all, data_all, [10, 8], 0.05, 1000)
 neural.train()
 neural.test()

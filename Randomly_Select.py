@@ -21,5 +21,5 @@ index_array = [1, 2, 3, 4, 5]
 
 #random.sample(index_array, 3)
 
-print(select_indexes(300, 200))
+#print(len(select_indexes(300, 200)))
 
