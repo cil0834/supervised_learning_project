@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import math
 import numpy as np
-from Randomly_Select import select_indexes
 
 
 def process_dataset(dataset):
@@ -49,7 +48,7 @@ def process_dataset(dataset):
 
     return dataset
 
-data_all = process_dataset(pd.read_csv('forestfires.csv'))
+
 
 
 weight_default = 0.01
@@ -222,24 +221,25 @@ class NeuralNetwork:
 
     def test(self):
 
-        rss_sum = 0
+        rmsd = 0
 
-        indices_selected = select_indexes(517, 250)
-
+        N = 0
         for index, row in self.data_test.iterrows():
+       
+            prediction = self.propagate_input_forward(row)
+            self.backpropagate_errors(row)
 
-            if index in indices_selected:        
-                prediction = self.propagate_input_forward(row)
-                self.backpropagate_errors(row)
+            area = row['area']
 
-                area = row['area']
-                #print(f'Prediction: {prediction}\tActual: {area}')
-
-                rss_sum += ((prediction - area) ** 2)
+            rmsd += ((prediction - area) ** 2)
+            N += 1
 
 
-        print(rss_sum)
-        return rss_sum
+        rmsd = (rmsd / N) ** 0.5
+
+
+        print(rmsd)
+        return rmsd
 
 
     def sigmoid(self, val):
@@ -247,8 +247,11 @@ class NeuralNetwork:
     
 
 
+data_train = process_dataset(pd.read_csv('train.csv'))
+data_validate = process_dataset(pd.read_csv('validation.csv'))
+data_test = process_dataset(pd.read_csv('test.csv'))
 
 
-neural = NeuralNetwork(data_all, data_all, [10, 8], 0.05, 5000)
+neural = NeuralNetwork(data_train, data_validate, [10, 8], 0.05, 5000)
 neural.train()
 neural.test()
