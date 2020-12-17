@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+import math
+import matplotlib.pyplot as plt
 
 max_depth = 5
 min_values = 10
@@ -117,10 +120,13 @@ class Regression_Tree:
 
             if data_point[category] < threshold:
                 branch = branch['left_branch']
+                if('predicted_value' in branch):
+                    prediction = branch['predicted_value']
             else:
                 branch = branch['right_branch']
-            prediction = branch.get("predicted_value")
-        return(prediction)
+                if('predicted_value' in branch):
+                    prediction = branch['predicted_value']
+        return prediction
 
     def predict(self, x_values):
         """
@@ -139,15 +145,14 @@ class Regression_Tree:
         Calculates the residual sum of squares
         :param prediction: the predicted values
         :param target: the target values
-        :return: Residual sum of squares
+        :return: Root mean squared error
         """
         rss = 0
         i = 0
         for prediction, target in zip(predictions, targets):
             i += 1
             rss += ((prediction - target) ** 2)
-
-        return rss/len(predictions)
+        return math.sqrt(rss/len(predictions))
 
     def predict_values(self, predictions, targets):
 
@@ -156,15 +161,34 @@ class Regression_Tree:
 
 data = pd.read_csv("forestfires.csv")
 
-data['area'] = data['area']
-Xs= ['DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
-zyx = data.iloc[0]
-y_data = data['area']
-targets = (y_data.tolist())
+data = pd.read_csv("forestfires.csv")
+Xs= ['FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain']
+data['area'] = np.log2(data['area'] + 1)
+train, test = train_test_split(data, test_size=0.2)
+train, validation = train_test_split(train, test_size=0.25)
+test_y = test['area']
+validation_y = validation['area']
 
-abc = Regression_Tree(7, 10, data, Xs, 'area')
-abc.train_tree()
-predictions = abc.predict(data)
+best_error = np.inf
+best_depth = 0
+min_val = 10
+for depth in range(1, 6):
+        dt = Regression_Tree(depth, min_val, data, Xs, 'area')
+        dt.train_tree()
+        predictions = dt.predict(validation)
+        error = dt.calculate_error(predictions, validation_y)
+        print("Depth: ", depth, " Error: ", error)
+        if (best_error > error):
+            best_depth = depth
+            best_error = error
+            best_min_val = min_val
 
-#print(abc.predict_values(predictions, targets))
-#print(abc.calculate_error(predictions, targets))
+print("The best depth is: ", best_depth, " The best validation error is: ", best_error)
+
+dt = Regression_Tree(3, 10, data, Xs, 'area')
+
+dt.train_tree()
+predictions = dt.predict(validation)
+testing_error = dt.calculate_error(predictions, test_y)
+
+print("The testing error is: ", testing_error)

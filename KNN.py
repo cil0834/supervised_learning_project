@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+import math
+from sklearn.model_selection import train_test_split
+
 
 class KNN:
     def __init__(self, n_neighbors, x, response, data):
@@ -28,8 +31,6 @@ class KNN:
         responses = []
         index = 0
         for response, training_example in zip(self.Y.iloc, self.X.iloc):
-            if index == 159:
-                print('here')
             distance = 0
             for attribute in self.x_columns:
                 distance += (data_point[attribute] - training_example[attribute]) ** 2
@@ -60,6 +61,7 @@ class KNN:
         """
         responses = self.calculate_distance(testing_example)
 
+        # average the responses and return the prediction
         return (sum(responses)/len(responses))
 
 
@@ -98,22 +100,40 @@ class KNN:
         rss = 0
         for prediction, target in zip(predictions, targets):
             rss += ((prediction - target) ** 2)
-            print("Prediction: ", prediction, " Target: ", target, " RSS: ", rss)
-        return rss/len(predictions)
+            #print("Prediction: ", prediction, " Target: ", target, " RSS: ", rss)
+        return math.sqrt(rss/len(predictions))
 
 
 data = pd.read_csv("forestfires.csv")
 Xs= ['temp', 'RH', 'wind', 'rain']
+data['area'] = np.log2(data['area'] + 1)
+train, test = train_test_split(data, test_size=0.2)
+train, validation = train_test_split(train, test_size=0.25)
+validation_y = validation['area']
+test_y = test['area']
 
-x_vals = data[Xs]
-y_vals = data['area'].iloc
+best_index = 0
+best_error = np.inf
+for i in range(1, 20):
+    knn = KNN(i, Xs, 'area', train)
+    predictions = knn.predict(validation)
+    current_error = knn.calculate_error(predictions, validation_y)
+    print("Number of neighbors: ", i, " MSE: ", current_error)
+    if (current_error < best_error):
+        best_error = current_error
+        best_index = i
 
-knn = KNN(1, Xs, 'area', data)
-predictions = knn.predict(data)
+print("Best numbers of neighbors: ", best_index, " Best error: ", current_error)
 
-error = knn.calculate_error(predictions, y_vals)
-print(error)
+for i in range(1, 20):
+    knn = KNN(i, Xs, 'area', train)
+    predictions = knn.predict(test)
+    current_error = knn.calculate_error(predictions, test_y)
+    print("Number of neighbors: ", i, " MSE Final: ", current_error)
 
+    train, test = train_test_split(data, test_size=0.2)
+    knn = KNN(best_index, Xs, 'area', train)
+    predictions = knn.predict(test)
+    final_error = knn.calculate_error(predictions, test_y)
 
-
-
+    print("The error is: ", final_error)
